@@ -1,0 +1,7 @@
+/nbproject/private/
+/vendor
+/composer.lock
+/configurations/*
+!/configurations/example.json
+/.credentials/*
+!/.credentials/placeholder

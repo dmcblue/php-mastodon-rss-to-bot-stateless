@@ -1,0 +1,11 @@
+{
+	"instance" : "social.targaryen.house",
+	"username" : "my_username",
+	"email" : "myemail+botname@mail.com",
+	"password" : "realpassword",
+	"feeds" : [
+		"http://www.website.com/rss/one.xml",
+		"http://www.website.com/rss/two.xml",
+		"http://www.website.com/rss/three.xml"
+	]
+}

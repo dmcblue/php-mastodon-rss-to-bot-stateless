@@ -1,0 +1,7 @@
+{
+    "require": {
+        "phediverse/mastodon-rest": "@dev",
+        "dg/rss-php": "^1.2",
+        "guzzlehttp/guzzle": "~6.0"
+    }
+}
