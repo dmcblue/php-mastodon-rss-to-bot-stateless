@@ -3,9 +3,18 @@
 	"username" : "my_username",
 	"email" : "myemail+botname@mail.com",
 	"password" : "realpassword",
-	"feeds" : [
-		"http://www.website.com/rss/one.xml",
-		"http://www.website.com/rss/two.xml",
-		"http://www.website.com/rss/three.xml"
-	]
+	"hashtags" : ["all"],
+	"feeds" : [{
+		"type" : "rss",
+		"url" : "http://www.website.com/rss/one.xml",
+		"hashtags" : ["cats"]
+	},{
+		"type" : "rss",
+		"url" : "http://www.website.com/rss/two.xml",
+		"hashtags" : ["music"]
+	},{
+		"type" : "atom",
+		"url" : "http://www.website.com/atom/three.xml",
+		"hashtags" : ["mood"]
+	}]
 }

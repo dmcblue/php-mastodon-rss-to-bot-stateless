@@ -10,7 +10,15 @@ use Phediverse\MastodonRest\Client as Client;
 
 $profileName = $argc > 1 ? $argv[1] : die('No configuration specified');
 
-const APP_NAME = 'PhpRssToBotStateless';
+$appConfig = 
+	json_decode(
+		file_get_contents(
+			__DIR__.DIRECTORY_SEPARATOR
+				.'configurations'.DIRECTORY_SEPARATOR
+				."APP.json"
+		),
+		FALSE
+	);
 
 
 $config = 
@@ -33,7 +41,7 @@ if(!file_exists($appCredentialsPath)){
 	$registerClient = AppRegisterClient::forInstance($config->instance);
 	$app = 
 		$registerClient->createApp(
-			APP_NAME, 
+			$appConfig->name, 
 			Application::REDIRECT_NONE, 
 			[Scope::READ, Scope::WRITE]
 		);
@@ -80,24 +88,34 @@ $response =
 	);
 
 
-function createToot($rssItemArray){
+function createToot($rssItemArray, $hashtags = []){
+	$formattedHashtags = 
+		implode(
+			' ',
+			array_map(
+				function($var){return '#'.$var;},
+				$hashtags
+			)
+		);
+	
+	$offset = strlen($rssItemArray['title']) + strlen($formattedHashtags) + 30;//I believe links are 20 chars
+	$description = 
+		strlen($rssItemArray['description']) > 500 - $offset
+			? substr($rssItemArray['description'], 0, 500 - $offset - 3).'...'
+			: $rssItemArray['description'];
 	return
 		implode(
 				"\n\n",
 				[
 					$rssItemArray['title'],
-					substr(
-						$rssItemArray['description'], 
-						0, 
-						500 - strlen($rssItemArray['title']) + 30
-					), //I believe links are 20
+					$description,
+					$formattedHashtags,
 					$rssItemArray['link']
 				]
 			);
 }
 
 function postToot($tootString, $guzzle, $accessToken){
-	//$body = \GuzzleHttp\Psr7\stream_for('hello!');
 	$guzzle->request(
 		'POST',
 		'statuses',
@@ -115,35 +133,28 @@ function postToot($tootString, $guzzle, $accessToken){
 
 $statuses = json_decode($response->getBody()->getContents(), true);
 //Get most recent post date
-$date = count($statuses) ? new DateTime($statuses[0]['created_at']) : new DateTime();
 if(count($statuses)){
 	//get all rss items since most recent post
-	
+	$date = new DateTime($statuses[0]['created_at']);
 	//read xmls
 	foreach($config->feeds as $feed){
-
-		$rss = Feed::loadRss($feed);
-
-		foreach ($rss->item as $item) {
-			$itemDate = new DateTime($item->timestamp);
+		$loader = 'load'.ucfirst(strtolower($feed->type));
+		$rss = Feed::$loader($feed->url)->toArray();
+		foreach ($rss['item'] as $item) {
+			$itemDate = new DateTime();
+			$itemDate->setTimestamp((int)$item['timestamp']);
 			if($itemDate > $date){
-				var_dump($item);
+				$status = createToot($item, array_merge($config->hashtags, $feed->hashtags));
+				postToot($status, $guzzle, $profileCredentials->accessToken);
 			}
-			/*
-			echo 'Title: ', $item->title;
-			echo 'Link: ', $item->link;
-			echo 'Timestamp: ', $item->timestamp;
-			echo 'Description ', $item->description;
-			echo 'HTML encoded content: ', $item->{'content:encoded'};
-			//*/
 		}
 	}
 }else{
 	//get the most recent post
 	//read xmls
 	foreach($config->feeds as $feed){
-
-		$rss = Feed::loadRss($feed)->toArray();
+		$loader = 'load'.ucfirst(strtolower($feed->type));
+		$rss = Feed::$loader($feed->url)->toArray();
 		$the_item = reset($rss['item']);
 		foreach ($rss['item'] as $item) {
 			$itemDate = new DateTime();
@@ -156,7 +167,7 @@ if(count($statuses)){
 				$the_item = $item;
 			}
 		}
-		$status = createToot($the_item);
+		$status = createToot($the_item, array_merge($config->hashtags, $feed->hashtags));
 		postToot($status, $guzzle, $profileCredentials->accessToken);
 	}
 }

@@ -3,5 +3,6 @@
 /composer.lock
 /configurations/*
 !/configurations/example.json
+!/configurations/APP.example.json
 /.credentials/*
 !/.credentials/placeholder
