@@ -12,6 +12,8 @@ Features:
 
 You will need a [cert file](https://stackoverflow.com/a/21114601/2329474) to run Guzzle.
 
+You will also need to set the timezone of your computer via the php.ini `date.timezone` setting.
+
 ### Load Dependencies
 Dependencies are loaded via [Composer](https://getcomposer.org/doc/00-intro.md#installation-linux-unix-osx)
 
