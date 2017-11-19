@@ -12,6 +12,8 @@ Currently running the [RFI Bot](https://mastodon.social/@rfibot) on mastodon.soc
 
 ## Setup
 
+Requires PHP 7.0
+
 You will need a [cert file](https://stackoverflow.com/a/21114601/2329474) to run Guzzle.
 
 You will also need to set the timezone of your computer via the php.ini `date.timezone` setting.
