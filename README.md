@@ -8,6 +8,8 @@ Features:
 - Supports (valid) RSS and Atom
 - Stateless: in the sense that it does not maintain a cache of which RSS posts have been converted to toots.
 
+Currently running the [RFI Bot](https://mastodon.social/@rfibot) on mastodon.social
+
 ## Setup
 
 You will need a [cert file](https://stackoverflow.com/a/21114601/2329474) to run Guzzle.
