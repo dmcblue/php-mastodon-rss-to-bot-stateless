@@ -99,7 +99,7 @@ function createToot($rssItemArray, $hashtags = []){
 		);
 	
 	$offset = strlen($rssItemArray['title']) + strlen($formattedHashtags) + 30;//I believe links are 20 chars
-	$descriptionStriped = strip_tags($rssItemArray['description']);
+	$descriptionStriped = html_entity_decode(strip_tags($rssItemArray['description']));
 	$description = 
 		strlen($descriptionStriped) > 500 - $offset
 			? substr($descriptionStriped, 0, 500 - $offset - 3).'...'
