@@ -3,6 +3,7 @@
 	"username" : "my_username",
 	"email" : "myemail+botname@mail.com",
 	"password" : "realpassword",
+	"hideDescription" : true,
 	"hashtags" : ["all"],
 	"feeds" : [{
 		"type" : "rss",

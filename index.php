@@ -88,7 +88,7 @@ $response =
 	);
 
 
-function createToot($rssItemArray, $hashtags = []){
+function createToot($rssItemArray, $hashtags = [], $hideDescription = false){
 	$formattedHashtags = 
 		implode(
 			' ',
@@ -98,25 +98,46 @@ function createToot($rssItemArray, $hashtags = []){
 			)
 		);
 	
-	$offset = strlen($rssItemArray['title']) + strlen($formattedHashtags) + 30;//I believe links are 20 chars
+	$offset = strlen($rssItemArray['title']) + strlen($formattedHashtags) + 30;
+	//I believe links are 20 chars
 	$descriptionStriped = html_entity_decode(strip_tags($rssItemArray['description']));
 	$description = 
 		strlen($descriptionStriped) > 500 - $offset
 			? substr($descriptionStriped, 0, 500 - $offset - 3).'...'
 			: $descriptionStriped;
-	return
-		implode(
-				"\n\n",
-				[
-					$rssItemArray['title'],
-					$description,
-					$formattedHashtags,
-					$rssItemArray['link']
-				]
-			);
+	
+	
+	if($hideDescription){
+		return [
+			'status' => $description,
+			'sensitive' => true,
+			'spoiler_text' =>  
+				implode(
+					"\n\n",
+					[
+						$rssItemArray['title'],
+						$formattedHashtags,
+						$rssItemArray['link']
+					]
+				)
+		];
+	}else{
+		return [
+			'status' => 
+				implode(
+					"\n\n",
+					[
+						$rssItemArray['title'],
+						$description,
+						$formattedHashtags,
+						$rssItemArray['link']
+					]
+				),
+		];
+	}
 }
 
-function postToot($tootString, $guzzle, $accessToken){
+function postToot($toot, $guzzle, $accessToken){
 	$guzzle->request(
 		'POST',
 		'statuses',
@@ -124,13 +145,17 @@ function postToot($tootString, $guzzle, $accessToken){
 			'headers' => [ 
 				'Authorization' => 'Bearer ' . $accessToken 
 			],
-			'form_params' => [
-				'status' => $tootString,
+			'form_params' => array_merge([
                 'visibility' => 'public',
-			]
+			], $toot)
 		]
 	);
 }
+
+$hideDescription = 
+	property_exists($config, 'hideDescription')
+		? $config->hideDescription
+		: false;
 
 $statuses = json_decode($response->getBody()->getContents(), true);
 //Get most recent post date
@@ -145,8 +170,8 @@ if(count($statuses)){
 			$itemDate = new DateTime();
 			$itemDate->setTimestamp((int)$item['timestamp']);
 			if($itemDate > $date){
-				$status = createToot($item, array_merge($config->hashtags, $feed->hashtags));
-				postToot($status, $guzzle, $profileCredentials->accessToken);
+				$toot = createToot($item, array_merge($config->hashtags, $feed->hashtags), $hideDescription);
+				postToot($toot, $guzzle, $profileCredentials->accessToken);
 			}
 		}
 	}
@@ -168,7 +193,7 @@ if(count($statuses)){
 				$the_item = $item;
 			}
 		}
-		$status = createToot($the_item, array_merge($config->hashtags, $feed->hashtags));
-		postToot($status, $guzzle, $profileCredentials->accessToken);
+		$toot = createToot($the_item, array_merge($config->hashtags, $feed->hashtags), $hideDescription);
+		postToot($toot, $guzzle, $profileCredentials->accessToken);
 	}
 }
